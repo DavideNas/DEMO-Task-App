@@ -528,4 +528,118 @@ psql -U postgres -d mydb
 ```sql
 SELECT * FROM users;
 ```
+---
+### TEST SIGNUP
+Per iniziare a creare un nuovo utente è possibile inviare alcune POST request.
+Si può fare con `Postman` (scaricando il client) o direttamente da VSCode tramite `Thunder Client`
+
+→ Se usi `Thunder Client` basta cliccare su `New Request`.
+→ Quindi inserisci l'url
+http://localhost:8000/auth/signup
+→ E metti il verbo su `POST`
+→ Poi scegli la tab `Body` ed aggiungi il seguente codice json
+```json
+{
+  "name": "dave",
+  "email": "pirate@dave.com",
+  "password": "test123"  
+}
+```
+> Se tutto va liscio ricevi il messaggio `Status: 201 Created` ed una `Response` strutturata a destra con i vari campi della tabella.
+
+---
+### LOGIN PAGE
+
+→ Aggiungo la pagina di login al file `src/routes/auth.ts` creo un'interfaccia per la login
+```ts
+interface LoginBody {
+    email: string;
+    password: string;
+}
+```
+→ Quindi la funzione di login
+```ts
+authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response) => {
+    try {
+        // get req body
+        const { email, password } = req.body;
+        // check if the user already exists
+        const [existingUser] = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email));
+        
+            if(!existingUser) {
+                res.status(400).json({ msg: "User with this email does not exists!" });
+                return;
+            }
+            // hash pw
+            const isMatch = bcrypt.compareSync(password, existingUser.password);
+            if(!isMatch) {
+                res.status(400).json({ msg: "Incorrect password!" });
+                return;
+            }
+
+            // return response with status code
+            res.json(existingUser);
+    }catch (e) {
+        res.status(500).json({ error: e });
+    }
+});
+```
+
+---
+### TEST LOGIN
+
+Come per la registrazione creo una nuova POST request tramite `Thunder Client`
+
+→ Questa volta aggiungo il path url `http://localhost:8000/auth/login`
+→ Sceglo il verbo della richiesta POST
+→ Quindi aggiungo al bodi il codice json per il login
+```json
+{
+  "email": "pirate@dave.com",
+  "password": "test123"  
+}
+```
+> Se tutto va bene ottterrò una risposta `Status: 200 OK` con un json nella tab `Response` contenente i dati utente.
+---
+### JWT
+Per assicurarsi che l'utente abbia una connessione sicura è possibile implementare il modulo JWT.
+→ Spegnendo il docker-compose con
+```bash
+docker-compose down -v
+```
+→ Installo il nuovo pacchetto JWT ed i tipi associati (per TS)
+```bash
+npm i jsonwebtoken
+npm i -D @types/jsonwebtoken
+```
+→ Quindi riavvio il docker-compose
+```bash
+docker compose up --build
+```
+
+Modifico poi il file `src/routes/auth.ts`
+```ts
+import jwt from "jsonwebtoken";
+```
+→ Quindi nella funzione di login (prima del `res.json`)
+```ts
+// JWT
+const token = jwt.sign({ id: existingUser.id }, "passwordKey");
+```
+
+→ Rieseguo la richiesta di login con `Thunder Client` ed se tutto va bene ottengo un file json con il `token` ed i dati dell'utente
+> Copio la stringa `token` per lo step successivo
+
+---
+### VERIFY JWT
+Per la verifica del JWT eseguo una nuova Richiesta `Thunder Client` con queste specifiche:
+
+- VERB: 	POST
+- URL: 	http://localhost:8000/auth/tokenIsValid
+- HEADER: x-auth-token
+- ARGOMENTO HEADER: <il token copiato prima>
+- BODY: lasciare vuoto
 
