@@ -4,6 +4,7 @@ import { NewUser, users } from "../db/schema";
 import { eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { auth, AuthRequest } from "../middleware/auth";
 
 const authRouter = Router();
 
@@ -121,8 +122,20 @@ authRouter.post("/tokenIsValid", async (req, res) => {
 });
 
 // localhost:8000/auth/
-authRouter.get("/", (req, res) => {
-    res.send("Hey there! from auth");
+authRouter.get("/", auth, async (req: AuthRequest, res) => {
+    try {
+        if(!req.user) {
+            res.status(401).json({ msg: "User not found!"});
+            return;
+        }
+
+        const [user] = await db.select().from(users).where(eq(users.id, req.user));
+
+        res.json({ ...user, token: req.token });
+    }
+    catch(e) {
+        res.status(500).json(false);
+    }
 });
 
 export default authRouter;

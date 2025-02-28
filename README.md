@@ -643,3 +643,379 @@ Per la verifica del JWT eseguo una nuova Richiesta `Thunder Client` con queste s
 - ARGOMENTO HEADER: <il token copiato prima>
 - BODY: lasciare vuoto
 
+→ Cliccando SEND dovrei ottenere una Response = 'true'
+> Avendo modificato il catch con un json = false provo a cambiare il token in modo che sia sbagliato e verifico che ci sia una Response = 'false'
+
+---
+### GET USER DATA
+Finita la procedura di verifica del token, ho la necessità di recuperare i dati utente (che verranno poi inoltrati al frontend).
+Per farlo devo permettere alla rotta "/" di visualizzare questi dati.
+Un punto fondamentale per recuperare i dati è l'integrazione del middleware.
+Il middleware serve a permettere solamente ad alcuni utenti di effettuare alcune azioni.
+Un esempiò può essere quello di permettere alcune azioni solamente agli utenti che sono stati autenticati.
+
+**Alcune osservazioni**
+1. Il primo passo è verificare se un utente è stato o meno autenticato.
+2. L'integrazione del middleware fa passare ogni richiesta da una rotta predefinita.
+3. Il middleware sfrutta la funzione di `tokenIsValid`
+
+→ Creo quindi una nuova cartella ed un file in `src/middleware/auth.ts`
+```ts
+import { UUID } from "crypto";
+import { eq } from "drizzle-orm";
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import { users } from "../db/schema";
+import { db } from "../db";
+
+export interface AuthRequest extends Request {
+    user?: UUID;
+    token?: string;
+}
+
+export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        // get the header
+        const token = req.header("x-auth-token");
+        
+        if(!token) {
+            res.status(401).json({ msg: "No auth token, access denied!"}); 
+            return;
+        }
+
+        // verify if the token is valid
+        const verified = jwt.verify(token, "passwordKey");
+
+        if(!verified) {
+            res.status(401).json({msg: "Token verification failed!"}); 
+            return;
+        }
+
+        // get the user data if the token is valid
+        const verifiedToken = verified as {id: UUID};
+
+        const [user] = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, verifiedToken.id));
+
+        // if no user, return false
+        if (!user) {
+            res.status(401).json({msg: "User not found!"}); 
+            return;
+        }
+
+        req.user = verifiedToken.id;
+        req.token = token;
+        next();
+    }
+    catch(e) {
+        res.status(500).json(false);
+    }
+}
+```
+
+Alcune caratteristiche del file:
+- `interface` che è un estensione di `Request` e ritorna solo `user` e `token`
+- `NextFunction` che permette l'integrazione del middleware nella rotta principale `/auth`
+- Il blocco **_try_** e **_catch_** è preso dalla rotta precedente `tokenIsValid`
+- `res.status` che restituiscono un codice errore per ogni casistica
+- `verifiedToken` che è di tipo UUID (non `string`)
+
+Quindi posso procedere con l'integrazione nel file `src/routes/auth.ts`
+→ Modifico la funzione `authRouter.get` aggiungendo il middleware `auth` e cambiando la response con un `req.token`
+```ts
+authRouter.get("/", auth, (req: AuthRequest, res) => {
+    res.send(req.token);
+});
+```
+→ aggiungendo gli import necessari
+```ts
+import { auth, AuthRequest } from "../middleware/auth";
+```
+→ Finita la parte di codice procedo con il testing via `Thunder Client`
+Creo una nuova richiesta con questi parametri:
+- URL: http://localhost:8000/auth/
+- VERB: GET
+- HEADER: x-auth-token
+- HEADER CONTENT: <il token copiato dal login>
+
+→ Per come è impostato il codice se la richiesta va a buon fine ottengo un token come risposta che corrisponde a quello inserito nell'header.
+
+Come ultimo passaggio per ottenere effettivamente i dati utente devo modificare il contenuto dell'endpoint "/" sul file `src/routes/auth.ts`
+→ Da così
+```ts
+authRouter.get("/", auth, (req: AuthRequest, res) => {
+    res.send(req.token);
+});
+```
+→ a così
+```
+authRouter.get("/", auth, async (req: AuthRequest, res) => {
+    try {
+        if(!req.user) {
+            res.status(401).json({ msg: "User not found!"});
+            return;
+        }
+
+        const [user] = await db.select().from(users).where(eq(users.id, req.user));
+
+        res.json({ ...user, token: req.token });
+    }
+    catch(e) {
+        res.status(500).json(false);
+    }
+});
+```
+
+> noto come la funzione sia diventata asincrona, questo serve a sincronizzare le info utente per inoltrarle alla response
+
+---
+### CONNECT FRONTEND
+→ Adesso che ho i dati utente di ritorno dal backend posso connettere il frontend mobile (flutter).
+
+Prima di proseguire con la modifica installo 2 nuovi pacchetti:
+→ http
+```bash
+dart pub add http
+```
+→ flutter_bloc
+```bash
+flutter pub add flutter_bloc
+```
+
+→ Fatto ciò creo una nuova cartella in `lib/features/auth/repository`
+Questa cartella conterrà 2 file:
+- AuthRemote Repository: Per comunicare con le API externe create in NODE.
+- LocalAuth Repository: Per creare un app principalmente offline.
+
+→ Creo il primo file `auth_remote_repository.dart`
+```dart
+import 'package:http/http.dart' as http;
+
+class AuthRemoteRepository {
+  Future<UserModel> signUp({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final res = await http.post(
+        Uri.parse(
+          '${Constants.backendUri}/auth/signup',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+		body: jsonEncode({
+					'name': name,
+					'email': email,
+					'password': password
+				}),
+      );
+      if (res.statusCode != 201) {
+        throw jsonDecode(res.body)['msg'];
+      }
+
+      //return UserModel.fromMap(jsonDecode(res.body));
+      return UserModel.fromJson(res.body);
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+	// Future<void> login({}) {	}
+}
+```
+- `backendUri` è una variabile costante definita in un file separato (vedi sotto).
+- `UserModel` è il modello di riferimento definito sotto 
+- `UserModel.fromJson` sarà implementabile una volta creato il codice di mapping nel file del modello
+- `UserModel.fromMap` questa linea è utilizzabile se volessi dividere i compiti delle classi omettendo i metodi `toJson` e `fromJson`
+- `body` contiene le variabili di risposta
+
+Le variabili implementate nelle richieste http sono create come costanti.
+→ Aggiungo quindi al progetto un file in `lib/core/constants/constants.dart`
+```dart
+class Constants {
+	static String backendUri = "http://localhost:8000";
+}
+```
+
+---
+### MODEL USER
+Creo un file `lib/models/user_model.dart`
+```dart
+class UserModel {
+  final String id;
+  final String email;
+  final String name;
+  final String token;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+};
+```
+Implementati i campi nel modello user devo adesso fare un mapping per convertirlo da e verso il formato json
+Esiste un plugin VSCode per questo tipo di operazione : `Dart Data Class Generator`
+Installato il plugin posso creare il resto del codice per il mapping semplicemente:
+→ Click DX sul codice del modello > Scegli "Generate data class".
+Questo creerà un codice aggiuntivo per la mappatura dei campi del modello.
+
+---
+### CUBIT
+Cubit deriva dal Bloc FrameWork che si iterpone tra il repository e la visualizzazione dell'app.
+Serve per impostare un pattern observer tra i repository (che prendono i dati dal backend) e le componenti frontend.
+
+> `part` e `part of` serve a connetere i 2 file per ottenere una corrispondenza di informazioni.
+
+Per iniziare creo 2 file :
+→ Il primo `lib/features/auth/cubit/auth_state.dart` col codice:
+```dart
+part of "auth_cubit.dart";
+
+sealed class AuthState {}
+
+final class AuthInitial extends AuthState {}
+
+final class AuthLoading extends AuthState {}
+
+final class AuthSignUp extends AuthState {}
+
+final class AuthLoggedIn extends AuthState {
+  final UserModel user;
+  AuthLoggedIn(this.user);
+}
+
+final class AuthError extends AuthState {
+  final String error;
+  AuthError(this.error);
+}
+```
+- `AuthState` è la classe che accomuna gli State Methods
+- `AuthInitial` estende `AuthState` e rende inizializzabile lo State Object (da altre classi)
+- 
+
+
+→ Il secondo `lib/features/auth/cubit/auth_cubit.dart`
+```dart
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/auth/repository/auth_remote_repository.dart';
+import 'package:frontend/models/user_model.dart';
+
+part 'auth_state.dart';
+
+class AuthCubit extends Cubit<AuthState> {
+  AuthCubit() : super(AuthInitial());
+  final authRemoteRepository = AuthRemoteRepository();
+
+  void signUp({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      emit(AuthLoading());
+      //final userModel =
+      await authRemoteRepository.signUp(
+        name: name,
+        email: email,
+        password: password,
+      );
+
+      // emit(AuthLoggedIn(userModel));
+      emit(AuthSignUp());
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+}
+```
+- `AuthCubit` definisce la classe Cubit che otterrà gli State Change da `AuthState`
+- La linea successiva serve a inizializzare la classe cubit (con lo State `AuthInitial`)
+- `authRemoteRepository` istanzia una copia del repository da "osservare"
+- `signUp` è un metodo (simile ad un'azione) che modifica lo stato del login
+- `emit(...)` descrive lo stato attuale che viene modificato durante l'esecuzione del codice
+
+→ Adesso devo implementare il pattern Cubit nel file `lib/main.dart`
+Prima di procedere mi serve aggiungere un componente VSCode per òa creazione del widget.
+Quindi dalla TAB Extension di VSCode cerco `bloc` (di Felix Angelov) e lo installo
+
+Aggiungo quindi il widget al `MaterialApp` con `CTRL + .` per aprire il menu e 
+1. seleziono `BlocProvider`
+2. modifico il nome in `MultiBlocProvider`
+3. rimuovo la label `create`
+4. aggiungo la label `providers` come segue:
+```
+providers: [
+	BlocProvider(create: (_) => AuthCubit()),
+],
+```
+- `BlocProvider` connette il widget alla classe `AuthCubit`
+
+→ Adesso modifico il file `lib/features/auth/signup_page.dart` aggungendo il metodo di lettura dati
+```
+void signUpUser() {
+	if (formKey.currentState!.validate()) {
+		// store the user data
+→		context.read<AuthCubit>().signUp(
+			name: nameController.text.trim(),
+			email: emailController.text.trim(),
+			password: passwordController.text.trim(),
+		);
+	}
+}
+```
+- `context.read` chiama l'azione `signUp` presente in cubit
+- I valori `name`, `email` e `password` sono presi dai componenti `Controller`
+- I parametri vengono "trimmati" o privati di spazi vuoti nella stringa
+
+Poi applico lo stato del pattern bloc al corpo della pagina (sempre `signup_page`)
+→ Faccio un wrap del componente `Padding` con `CTRL + .` scegliendo `BlocConsumer`
+→ Modifico il componente come segue
+```
+BlocConsumer<AuthCubit, AuthState>(
+        listener: (context, state) {
+          if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+              ),
+            );
+          } else if (state is AuthSignUp) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Account created! Login NOW!"),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is AuthLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+```
+- `AuthCubit` è quello che emette gli State
+- `AuthState` è la classe che definisce gli State
+- con `AuthError` visualizzo un messaggio di errore tramite SnackBar
+- con `AuthLoading` creo un componente di loading circolare
+- con `AuthSignUp` visualizzo un messaggio di avvenuta registrazione tramite SnackBar
+
+---
+### CHECK FULL APP
+Controllo adesso i procedimenti di scrittura su DB Postgres una volta effettuata la registrazione.
+Questo procedimento è possibile modificando l'indirizzo ip che richiama il backend dell'app Flutter
+- Se gira su emulatore locale `10.0.2.2:8000`
+- Se gira su device Android fisico allora l'IP deve essere lo stesso che esegue il client Docker (fai un check con `ipconfig`)
+
+Avvia il tutto 
+1. `docker compose up --build` dal terminale `/backend`
+2. `flutter run` da terminale `/frontend`
+3. Apri la pagina `signup` da app Android
+4. Inserisci le credenziali di registrazione
+5. Premi il pulsante `Signup`
+6. Da PC apri il client Docker e seleziona il container Postgres
+7. Scegli la tab EXEC per scrivere a terminale Postgres
+8. Scrivi `psql -U postgres -d mydb` per aprire il DB
+9. fai una `SELECT * FROM users;` per leggere la lista utenti (dovrebbe esserci quello che hai inserito dalla pagina Flutter su Android)
+---
+
