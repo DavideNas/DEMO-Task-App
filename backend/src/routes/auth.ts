@@ -32,7 +32,7 @@ authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Respons
             if(existingUser.length) {
                 res
                     .status(400)
-                    .json({ msg: "User with the same email alreasy exists!" });
+                    .json({ msg: "User with the same email already exists!" });
                 return;
             }
             // hash pw
@@ -45,8 +45,15 @@ authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Respons
             };
 
             const [user] = await db.insert(users).values(newUser).returning();
+
+            // create token like in login
+            const token = jwt.sign({ id: user.id }, "passwordKey");
+
+            // DON'T send password to frontend
+            const { password: _, ...userWithoutPassword } = user;
+
             // return response with status code
-            res.status(201).json(user);
+            res.status(201).json({token, ...userWithoutPassword });
     }catch (e) {
         res.status(500).json({ error: e });
     }
@@ -75,8 +82,11 @@ authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response)
             // JWT
             const token = jwt.sign({ id: existingUser.id }, "passwordKey");
 
+            const { password: _, ...userWithoutPassword } = existingUser;
+
+
             // return response with status code
-            res.json({token, ...existingUser});
+            res.json({token, ...userWithoutPassword});
     }catch (e) {
         res.status(500).json({ error: e });
     }
@@ -131,7 +141,10 @@ authRouter.get("/", auth, async (req: AuthRequest, res) => {
 
         const [user] = await db.select().from(users).where(eq(users.id, req.user));
 
-        res.json({ ...user, token: req.token });
+        // res.json({ ...user, token: req.token });
+        const { password: _, ...userWithoutPassword } = user;
+
+        res.json({ ...userWithoutPassword, token: req.token });
     }
     catch(e) {
         res.status(500).json(false);

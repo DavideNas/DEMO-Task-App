@@ -52,8 +52,12 @@ class UserModel {
       email: map['email'] as String,
       name: map['name'] as String,
       token: map['token'] as String,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt'] as int),
+      createdAt: DateTime.parse(
+        map['createdAt'],
+      ), //.fromMillisecondsSinceEpoch(map['createdAt'] as int),
+      updatedAt: DateTime.parse(
+        map['updatedAt'],
+      ), //.fromMillisecondsSinceEpoch(map['updatedAt'] as int),
     );
   }
 

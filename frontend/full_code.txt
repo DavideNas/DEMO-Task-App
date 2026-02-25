@@ -1,0 +1,571 @@
+→ lib/main.dart
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/auth/cubit/auth_cubit.dart';
+import 'package:frontend/features/auth/pages/login_page.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => AuthCubit()),
+      ],
+      child: MaterialApp(
+        title: 'Task App',
+        theme: ThemeData(
+          inputDecorationTheme: InputDecorationTheme(
+            contentPadding: const EdgeInsets.all(27),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.grey.shade300,
+                width: 3,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                width: 3,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            border: OutlineInputBorder(
+              borderSide: const BorderSide(
+                width: 3,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                color: Colors.red,
+                width: 3,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              minimumSize: const Size(double.infinity, 60),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          ),
+          useMaterial3: true,
+        ),
+        home: const LoginPage(),
+      ),
+    );
+  }
+}
+
+```
+
+---
+→ lib/core/constants/constants.dart
+```dart
+class Constants {
+  static String backendUri = "http://192.168.1.9:8000";
+  //"http://localhost:8000";
+}
+
+```
+
+---
+→ lib/features/auth/cubit/auth_cubit.dart
+```dart
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/auth/repository/auth_remote_repository.dart';
+import 'package:frontend/models/user_model.dart';
+
+part 'auth_state.dart';
+
+class AuthCubit extends Cubit<AuthState> {
+  AuthCubit() : super(AuthInitial());
+  final authRemoteRepository = AuthRemoteRepository();
+
+  void signUp({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      emit(AuthLoading());
+      //final userModel =
+      await authRemoteRepository.signUp(
+        name: name,
+        email: email,
+        password: password,
+      );
+
+      // emit(AuthLoggedIn(userModel));
+      emit(AuthSignUp());
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+}
+
+```
+
+---
+→ lib/features/auth/cubit/auth_state.dart
+```dart
+part of "auth_cubit.dart";
+
+sealed class AuthState {}
+
+final class AuthInitial extends AuthState {}
+
+final class AuthLoading extends AuthState {}
+
+final class AuthSignUp extends AuthState {}
+
+final class AuthLoggedIn extends AuthState {
+  final UserModel user;
+  AuthLoggedIn(this.user);
+}
+
+final class AuthError extends AuthState {
+  final String error;
+  AuthError(this.error);
+}
+
+```
+
+---
+→ lib/features/auth/pages/login_page.dart
+```dart
+import 'package:flutter/material.dart';
+import 'package:frontend/features/auth/pages/signup_page.dart';
+
+class LoginPage extends StatefulWidget {
+  static MaterialPageRoute route() => MaterialPageRoute(
+        builder: (context) => const LoginPage(),
+      );
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final nameController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    nameController.dispose();
+    super.dispose();
+  }
+
+  void loginUser() {
+    if (formKey.currentState!.validate()) {
+      // store the user data
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text("Login.",
+                  style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 30),
+              TextFormField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  hintText: 'Email',
+                ),
+                validator: (value) {
+                  if (value == null ||
+                      value.trim().isEmpty ||
+                      !value.trim().contains("@")) {
+                    return "Email field is invalid!";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: passwordController,
+                decoration: const InputDecoration(
+                  hintText: 'Password',
+                ),
+                validator: (value) {
+                  if (value == null ||
+                      value.trim().isEmpty ||
+                      value.trim().length <= 6) {
+                    return "Password field is invalid!";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: loginUser,
+                child: const Text(
+                  'LOGIN',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(SignupPage.route());
+                },
+                child: RichText(
+                  text: TextSpan(
+                    text: 'Don\'t have an account? ',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    children: const [
+                      TextSpan(
+                        text: 'Sign Up',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Roboto',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+```
+
+---
+→ lib/features/auth/pages/signup_page.dart
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/auth/cubit/auth_cubit.dart';
+import 'package:frontend/features/auth/pages/login_page.dart';
+
+class SignupPage extends StatefulWidget {
+  static MaterialPageRoute route() => MaterialPageRoute(
+        builder: (context) => const SignupPage(),
+      );
+  const SignupPage({super.key});
+
+  @override
+  State<SignupPage> createState() => _SignupPageState();
+}
+
+class _SignupPageState extends State<SignupPage> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final nameController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    nameController.dispose();
+    super.dispose();
+  }
+
+  void signUpUser() {
+    if (formKey.currentState!.validate()) {
+      // store the user data
+      context.read<AuthCubit>().signUp(
+            name: nameController.text.trim(),
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: BlocConsumer<AuthCubit, AuthState>(
+        listener: (context, state) {
+          if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+              ),
+            );
+          } else if (state is AuthSignUp) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Account created! Login NOW!"),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is AuthLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Sign Up.",
+                      style:
+                          TextStyle(fontSize: 50, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 30),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      hintText: 'Name',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Name field cannot be empty!";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      hintText: 'Email',
+                    ),
+                    validator: (value) {
+                      if (value == null ||
+                          value.trim().isEmpty ||
+                          !value.trim().contains("@")) {
+                        return "Email field is invalid!";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: passwordController,
+                    decoration: const InputDecoration(
+                      hintText: 'Password',
+                    ),
+                    validator: (value) {
+                      if (value == null ||
+                          value.trim().isEmpty ||
+                          value.trim().length <= 6) {
+                        return "Password field is invalid!";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: signUpUser,
+                    child: const Text(
+                      'SIGN UP',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(LoginPage.route());
+                    },
+                    child: RichText(
+                      text: TextSpan(
+                        text: 'Already have an account? ',
+                        style: Theme.of(context).textTheme.titleMedium,
+                        children: const [
+                          TextSpan(
+                            text: 'Sign In',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+```
+
+---
+→ lib/features/auth/repository/auth_remote_repository.dart
+```dart
+import 'dart:convert';
+
+import 'package:frontend/core/constants/constants.dart';
+import 'package:frontend/models/user_model.dart';
+import 'package:http/http.dart' as http;
+
+class AuthRemoteRepository {
+  Future<UserModel> signUp({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final res = await http.post(
+        Uri.parse(
+          '${Constants.backendUri}/auth/signup',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+        }),
+      );
+      if (res.statusCode != 201) {
+        throw jsonDecode(res.body)['msg'];
+      }
+
+      // return UserModel.fromMap(jsonDecode(res.body));
+      return UserModel.fromJson(res.body);
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+  // Future<void> login({}) {
+
+  // }
+}
+
+```
+
+---
+→ lib/models/user_model.dart
+```dart
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:convert';
+
+class UserModel {
+  final String id;
+  final String email;
+  final String name;
+  final String token;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  UserModel({
+    required this.id,
+    required this.email,
+    required this.name,
+    required this.token,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? name,
+    String? token,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      token: token ?? this.token,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id': id,
+      'email': email,
+      'name': name,
+      'token': token,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'updatedAt': updatedAt.millisecondsSinceEpoch,
+    };
+  }
+
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
+      id: map['id'] as String,
+      email: map['email'] as String,
+      name: map['name'] as String,
+      token: map['token'] as String,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt'] as int),
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory UserModel.fromJson(String source) =>
+      UserModel.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  @override
+  String toString() {
+    return 'UserModel(id: $id, email: $email, name: $name, token: $token, createdAt: $createdAt, updatedAt: $updatedAt)';
+  }
+
+  @override
+  bool operator ==(covariant UserModel other) {
+    if (identical(this, other)) return true;
+
+    return other.id == id &&
+        other.email == email &&
+        other.name == name &&
+        other.token == token &&
+        other.createdAt == createdAt &&
+        other.updatedAt == updatedAt;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        email.hashCode ^
+        name.hashCode ^
+        token.hashCode ^
+        createdAt.hashCode ^
+        updatedAt.hashCode;
+  }
+}
+
+```
+
+---

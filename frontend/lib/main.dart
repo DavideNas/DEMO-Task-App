@@ -14,38 +14,26 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => AuthCubit()),
-      ],
+      providers: [BlocProvider(create: (_) => AuthCubit())],
       child: MaterialApp(
         title: 'Task App',
         theme: ThemeData(
           inputDecorationTheme: InputDecorationTheme(
             contentPadding: const EdgeInsets.all(27),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.grey.shade300,
-                width: 3,
-              ),
+              borderSide: BorderSide(color: Colors.grey.shade300, width: 3),
               borderRadius: BorderRadius.circular(10),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                width: 3,
-              ),
+              borderSide: const BorderSide(width: 3),
               borderRadius: BorderRadius.circular(10),
             ),
             border: OutlineInputBorder(
-              borderSide: const BorderSide(
-                width: 3,
-              ),
+              borderSide: const BorderSide(width: 3),
               borderRadius: BorderRadius.circular(10),
             ),
             errorBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Colors.red,
-                width: 3,
-              ),
+              borderSide: const BorderSide(color: Colors.red, width: 3),
               borderRadius: BorderRadius.circular(10),
             ),
           ),
