@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/auth/repository/auth_remote_repository.dart';
 import 'package:frontend/models/user_model.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'auth_state.dart';
 
@@ -39,7 +40,9 @@ class AuthCubit extends Cubit<AuthState> {
       );
 
       emit(AuthLoggedIn(userModel));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print("ERRORE CATTURATO: $e");
+      await Sentry.captureException(e, stackTrace: stackTrace);
       emit(AuthError(e.toString()));
     }
   }

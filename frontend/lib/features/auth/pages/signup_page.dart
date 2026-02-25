@@ -4,9 +4,8 @@ import 'package:frontend/features/auth/cubit/auth_cubit.dart';
 import 'package:frontend/features/auth/pages/login_page.dart';
 
 class SignupPage extends StatefulWidget {
-  static MaterialPageRoute route() => MaterialPageRoute(
-        builder: (context) => const SignupPage(),
-      );
+  static MaterialPageRoute route() =>
+      MaterialPageRoute(builder: (context) => const SignupPage());
   const SignupPage({super.key});
 
   @override
@@ -31,10 +30,10 @@ class _SignupPageState extends State<SignupPage> {
     if (formKey.currentState!.validate()) {
       // store the user data
       context.read<AuthCubit>().signUp(
-            name: nameController.text.trim(),
-            email: emailController.text.trim(),
-            password: passwordController.text.trim(),
-          );
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
     }
   }
 
@@ -44,24 +43,18 @@ class _SignupPageState extends State<SignupPage> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-              ),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.error)));
           } else if (state is AuthSignUp) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Account created! Login NOW!"),
-              ),
+              const SnackBar(content: Text("Account created! Login NOW!")),
             );
           }
         },
         builder: (context, state) {
           if (state is AuthLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
           return Padding(
             padding: const EdgeInsets.all(15.0),
@@ -70,15 +63,14 @@ class _SignupPageState extends State<SignupPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Sign Up.",
-                      style:
-                          TextStyle(fontSize: 50, fontWeight: FontWeight.bold)),
+                  const Text(
+                    "Sign Up.",
+                    style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 30),
                   TextFormField(
                     controller: nameController,
-                    decoration: const InputDecoration(
-                      hintText: 'Name',
-                    ),
+                    decoration: const InputDecoration(hintText: 'Name'),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return "Name field cannot be empty!";
@@ -89,9 +81,7 @@ class _SignupPageState extends State<SignupPage> {
                   const SizedBox(height: 15),
                   TextFormField(
                     controller: emailController,
-                    decoration: const InputDecoration(
-                      hintText: 'Email',
-                    ),
+                    decoration: const InputDecoration(hintText: 'Email'),
                     validator: (value) {
                       if (value == null ||
                           value.trim().isEmpty ||
@@ -104,9 +94,7 @@ class _SignupPageState extends State<SignupPage> {
                   const SizedBox(height: 15),
                   TextFormField(
                     controller: passwordController,
-                    decoration: const InputDecoration(
-                      hintText: 'Password',
-                    ),
+                    decoration: const InputDecoration(hintText: 'Password'),
                     validator: (value) {
                       if (value == null ||
                           value.trim().isEmpty ||
@@ -121,10 +109,7 @@ class _SignupPageState extends State<SignupPage> {
                     onPressed: signUpUser,
                     child: const Text(
                       'SIGN UP',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
                   GestureDetector(
