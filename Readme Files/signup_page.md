@@ -1,17 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:frontend/features/auth/pages/signup_page.dart';
+## Set the file for SignupPage like this
 
-class LoginPage extends StatefulWidget {
-  static MaterialPageRoute route() => MaterialPageRoute(
-        builder: (context) => const LoginPage(),
-      );
-  const LoginPage({super.key});
+```dart
+import 'package:flutter/material.dart';
+import 'package:frontend/features/auth/pages/login_page.dart';
+
+class SignupPage extends StatefulWidget {
+  static MaterialPageRoute route() =>
+      MaterialPageRoute(builder: (context) => const SignupPage());
+  const SignupPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignupPageState extends State<SignupPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final nameController = TextEditingController();
@@ -25,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void loginUser() {
+  void signUpUser() {
     if (formKey.currentState!.validate()) {
       // store the user data
     }
@@ -41,14 +43,25 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Login.",
-                  style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold)),
+              const Text(
+                "Sign Up.",
+                style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 30),
               TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(hintText: 'Name'),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return "Name field cannot be empty!";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
                 controller: emailController,
-                decoration: const InputDecoration(
-                  hintText: 'Email',
-                ),
+                decoration: const InputDecoration(hintText: 'Email'),
                 validator: (value) {
                   if (value == null ||
                       value.trim().isEmpty ||
@@ -61,9 +74,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 15),
               TextFormField(
                 controller: passwordController,
-                decoration: const InputDecoration(
-                  hintText: 'Password',
-                ),
+                decoration: const InputDecoration(hintText: 'Password'),
                 validator: (value) {
                   if (value == null ||
                       value.trim().isEmpty ||
@@ -75,26 +86,23 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: loginUser,
+                onPressed: signUpUser,
                 child: const Text(
-                  'LOGIN',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
+                  'SIGN UP',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(SignupPage.route());
+                  Navigator.of(context).push(LoginPage.route());
                 },
                 child: RichText(
                   text: TextSpan(
-                    text: 'Don\'t have an account? ',
+                    text: 'Already have an account? ',
                     style: Theme.of(context).textTheme.titleMedium,
                     children: const [
                       TextSpan(
-                        text: 'Sign Up',
+                        text: 'Sign In',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Roboto',
@@ -111,3 +119,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+```

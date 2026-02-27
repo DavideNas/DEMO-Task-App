@@ -1,6 +1,6 @@
-## App flutter con backend 
-Questo tutorial spiega come creare un'app mobile con un backend in NodeJS.
-Include le seguenti tecnologie e pacchetti:
+## App flutter with backend
+This tutorial explains how to create a mobile app with a BFF pattern implementation
+This projects will includes following technologies and packages:
 
 - Flutter,
 - BLoC,
@@ -12,115 +12,102 @@ Include le seguenti tecnologie e pacchetti:
 - Docker!
 
 ---
-### Setup Iniziale
-```bash
-mkdir task_app
+### Initial Setup
+
+```sh
+mkdir task_app            # create main project folder
 cd task_app
-```
 
----
-## FRONTEND (flutter):
+flutter create frontend   # create flutter app
 
-→ Creo il frontend in flutter
-```bash
-flutter create frontend
-```
-→ Torno alla cartella task_app
-```bash
 cd ..
-mkdir backend		
+mkdir backend		          # create folder for backend
 ```
 
-→ Poi accedi all'app flutter e rimuovi il boilerplate, quindi crea una cartella in 
-`/lib/features/auth/pages/`
+Then change flutter project boilerplate with following mods:
+* remove boilerplate, and add a folder in `/lib/features/auth/pages/`
+* then add file `signup_page.dart` : add a stateful widget called **SignupPage** with [this content](<Readme Files/signup_page.md>)
+* and `login_page.dart` : add a stateful widget called **LoginPage** with [this content](<Readme Files/login_page.md>)
 
-→ quindi aggiungo un file 
-`signup_page.dart`
-e 
-`login_page.dart`
-
-→ creo il boilerplate del widget stateful in flutter e lo rinomino
-stf → SignupPage
-
-→ Con una struttura pari alla pagina
-https://github.com/DavideNas/Task-App/blob/main/frontend/lib/features/auth/pages/signup_page.dart
-
-stf → LoginPage
-con una struttura pari alla pagina:
-https://github.com/DavideNas/Task-App/blob/main/frontend/lib/features/auth/pages/login_page.dart
-
-Leggi il codice dalla versione ["First Commit : basic flutter pages"](<https://github.com/DavideNas/Task-App/commit/0d7e3492fdb70ac437961fb0d3191588ec0b18cc>)
 
 ---
-## BACKEND (node):
-→ Prima di iniziare installa nodejs ed npm verificando la versione: 
+
+### BACKEND (in NodeJS):
+
+1. Fist step: check **node** and **npm** version
 ```bash
 node --version
 npm --version
 ```
-→ Quindi crea l'app node
+
+2. Then create node app
 ```bash
 cd backend
 npm init -y
 ```
----
-### Test node
-→ Creo un file di prova `index.js` con uno script 
+
+3. Add a sample file `index.js` with a script: 
 ```js
 console.log("Hello world !")
 ```
-→ Quindi faccio un test iniziale avviandolo da terminale
-```bash
+
+4. Then I make an initial test starting from terminal
+```sh
 node index.js
 ```
-→ Quindi installo alcuni pacchetti tramite npm
-```
+
+5. And add some **npm** packages
+```sh
 npm install express pg drizzle-orm dotenv
 ```
-- `express` è un pacchetto che migliora le prestazioni di app web/mobile fornendo metodi API
-- `pg` è un pacchetto che aiuta a connettere il DB postgres
-- `drizzle-orm` gestisce la mappatura delle tabelle come oggetti relazionali
-- `dotenv` (opzionale) protegge l'upload di file env che potrebbero contenere dati sensibili
 
-→ Installo le direttive di TS (e le dipendenze ottimizzate per eseguirlo in node)
-```
+- `express` used to implement API methods inside a Node app (improving web performance)
+- `pg` it's a package which help to connect postgres DB
+- `drizzle-orm` used to manage table mapping them as Object Relational Models
+- `dotenv` (optional) protect the env file upload (the ones which can contains sensitive data)
+
+6. Install TS directives (and the dependencies optimized to run in NodeJS)
+```sh
 npm install -D typescript ts-node nodemon @types/node @types/express @types/pg
 ```
-- `typescript` utilizzo di TS anziché JS
-- `ts-node` pacchetto di ottimizzazione TS su NODE
-- `nodemon` tool per il live refresh degli script
-- `@types/...` aggiunge i tipi TS compatibili con le varie librerie (node, express e postgres)
 
-→ Avvio la configurazione iniziale di TS (sostituendolo a JS come codice di base)
+- `typescript` use TS instead of JS 
+- `ts-node` enhanced TS package for NodeJS
+- `nodemon` tool to make live update
+- `@types/...` add all TS suitable types with other libraries (node, express and postgres)
+
+7. Start initial configuration for TS (replacing the JS codebase)
 ```bash
 npx tsc --init
 ```
-→ Quindi apro il file "tsconfig.json" e decommento
-`"outDir": "./dist",` , specifica la cartella di output (aggiungo `dist`)
-`"rootDir": "./src",` , specifica la cartella sorgente per i file TS (aggiungo `src`)
 
-→ Creo una cartella `/src` ed un file al suo interno `index.ts`
+8. Then open the `tsconfig.json` file and remove comments:
+- `"outDir": "./dist",`, specify output folder (add `dist`)
+- `"rootDir": "./src",`, specify source folder for TS files (add `src`)
 
-→ Copiando il test script di prima
+9. Create a new folder `/src` and a file `index.ts` inside
+
+10. Copy the test script like already done before
 ```ts
 console.log("Hello world!");
 ```
 
-> Adesso però prima di avviare modifico il parametro "script" per impostarlo con nodemon
+> Now you must to modify the **"scripts"** parameter to adapt with **nodemon**
 
-→ Sostituisco il contenuto del la label "scripts" in `package.json`
+11. replace content for "scripts" inside `package.json`
 ```json
 "scripts": {
 	"dev": "npx nodemon"
 }
 ```
-Test di prova:
-```bash
+
+12. Execute this test
+```sh
 npm run dev
 ```
-> Mancando alcune impostazioni iniziali di `nodemon` il terminale darà errore.
+> If some initial `nodemon` settings are missing, the terminal will give an error.
 
-→ Correggo aggiungendo un file `nodemon.json` nella cartella principale di `/beckend`
+13. To fix this issue add a file `nodemon.json` inside `/backend`
 ```json
 {
 	"watch": ["src"],
@@ -129,34 +116,34 @@ npm run dev
 	"exec": "ts-node src/index.ts"
 }
 ```
-- `watch` definisce la cartella presa in esame (e nessun altra)
-- `ext` specifica l'estensione del file di avvio
-- `ignore` specifica le cartelle da ignorare (evitando di pescare info da `/dist` e sottocartelle come `/node_modules`)
-- `exec` definisce il file da avviare
 
-→ Riavvio l'app 
-```bash
+- `watch` define folder to keep watching (excluding other ones)
+- `ext` specify extension for starting file
+- `ignore` define folder to ignore (to avoid checking from `/dist` and subfolder `/node_modules`)
+- `exec` define file to start
+
+1. Restart app 
+```sh
 npm run dev
 ```
-> verifico l'aggiornamento del file modificando il testo del log e salvandolo subito dopo
+> Check file update changing and saving log text
 
 ---
-### DOCKER
+### CONTAINER SETUP (Docker)
 
-Il passaggio successivo consiste nell'installare Docker per utilizzarlo nel beckend
+This setup is needed step to implement backend inside Docker container.
 
-Questo è fondamentale per avere i seguenti vantaggi
-1. Un env. controllato
-2. Distribuire l'app su server
-3. Contenerizzare l'app beckend (Node non è auto-contenerizzato)
+This is important to take this advantages:
+- A managed ***env*** file
+- Deploy app on the server
+- Containerize backend app (Node is not auto contained)
 
-→ Scarico ed installo il software se non presente
+1. Download and install Docker Desktop (if not installed)
 
-→ In seguito aggiungo un nuovo file alla cartella `backend/`
-`Dockerfile`
+2. After add a **Dockerfile** named file to `backend/` folder 
 
-→ Quindi creo il setup della VM 
-```bash
+3. And setup the container adding this bash commands inside 
+```Dockerfile
 FROM node:20
 
 WORKDIR /app
@@ -171,21 +158,24 @@ EXPOSE 8000
 
 CMD ["npm", "run", "dev"]
 ```
-- `FROM` definisce l'immagine da usane nel container
-- `WORKDIR` la cartella dove l'app viene installata
-- `COPY` il comando che trasferisce il contenuto nella cartella ROOT in WORKDIR (ovvero `/app`)
-- `RUN` usato per installare i pacchetti necessari
-- `EXPOSE` per esporre il contenitore alla porta 8000 (uso prettamente interno)
-- `CMD` comandi di avvio usati dal container per far girare l'app
 
+In this file:
+- `FROM` define image used inside container
+- `WORKDIR` the folder where app is installed
+- `COPY` this is used to transfer ROOT content inside WORKDIR (which is `/app`)
+- `RUN` used to run packages installation command
+- `EXPOSE` to expose container on the port 8000 (for internal use)
+- `CMD` used by container to start backend app
 
-→ Quindi creo un `.dockerignore` aggiungendo:
+4. Next I create a `.dockerignore` adding:
+```sh
+node_modules/   # this will avoid to check folder
 ```
-node_modules/
-```
+
 ---
-### APP EXPRESS
-Modifico il file `src/index.ts`
+### APP EXPRESS (NodeJS)
+
+1. Modify the file `src/index.ts`
 ```ts
 import express from "express"
 const app = express();
@@ -198,90 +188,100 @@ app.listen(8000, () => {
 	console.log("Server started on port 8000");
 });
 ```
-- `import ...` equivale a codice JS `const express = require("express")` rendendolo però compatibile con TS
-- `const app...` inizializzo l'app (di tipo _Express_)
-- `app.get...` crea un endpoint base `/` che restiruisce una semplice frase di benvenuto
-- `app.listen...` definisce la porta in ascolto sull'app
 
-→ Quindi adesso posso salvare il file index ed avviarlo (se non è già avviato)
-```bash
+In this file:
+- `import ...` is the same JS code `const express = require("express")` for TS
+- `const app...` init the app (of type _Express_)
+- `app.get...` create a `/` endpoint which will return a simple welcome message
+- `app.listen...` define the door to listen
+
+2. Then now I can save the index file and start (if not started yet)
+```sh
 npm run dev
 ```
 
-**_DA BROWSER_**
-→ apro la pagina `localhost:8000`
+3. from Browser: open the page `localhost:8000`
 
 ---
-### DOCKER IMAGE
-→ Avvio Docker Desktop e creo l'immagine da terminale
-```bash
+### RUN CONTAINER (Docker)
+
+1. Start Docker Desktop and create the image from terminal
+```sh
 docker build -t task-backend .
 ```
-- `-t` è usato per definire il nome dell'immagine
-- `.` alla fine è la cartella da contenerizzare (quella attuale del progetto)  
+In this bash command:
+- `-t` is used to define the image name
+- `.` at the end, is the folder to containerize (the current one)  
 
-→ Eseguo l'immagine docker
-```
+2. Execute docker image
+```sh
 docker run -p 8080:8000 task-backend
 ```
-- `-p` serve a mappare le porte in ascolto
-- `8080:8000` la sintassi è <PORTA_HOST>:<PORTA_CONTAINER>
-	- `PORTA_HOST` è la porta che serve ad accedere all'app tramite link (ad esempio `localhost:8080`)
-	- `PORTA_CONTAINER` è definita nell'app node in `app.listen`
-	- La `PORTA_EXPOSE` del Dockerfile non viene menzionata dal `run` (usata invece in Docker Compose)
-- `task-backend` è il nome dell'immagine da avviare
+In this bash command:
+- `-p` used to map the port to listen
+- `8080:8000` the syntax is <PORT_HOST>:<PORT_CONTAINER>
+	- `PORT_HOST` the port used to access the app from the link (for example `localhost:8080`)
+	- `PORT_CONTAINER` defined inside NodeJS with `app.listen` command
+	- The `PORT_EXPOSE` for Dockerfile is not mentioned for `run` (used instead in Docker Compose)
+- `task-backend` is the name of the image to run
 
 ---
-### DOCKER COMPOSE
-→ Creo un file dockercompose nella cartella `/src`:
-`docker-compose.yml`
+### COMPOSE BACKEND (Docker Compose)
+
+1. Create a file `docker-compose.yaml` inside `/src` folder
 
 ```yml
 services:
-	backend:
-		build:
-			context: ./
-		ports:
-			- "8000:8000"
-		environment:
-			- PORT=8000
-			- DATABASE_URL=postgresql://postgres:test123@mydb:5432/mybd
-		depends_on:
-			- db
-		volumes:
-			- ./:/app
-	db:
-		image: postgres:15
-		container_name: postgres_container
-		restart: always
-		environment:
-			POSTGRES_USER=postgres
-			POSTGRES_PASSWORD=test123
-			POSTGRES_DB=mydb
-		ports:
-			- "5432:5432"
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgresql://postgres:test123@db:5432/mydb
+    depends_on:
+      - db
+    command: sh -c "npx drizzle-kit push --config=src/drizzle.config.ts && npm run dev"
+  db:
+    image: postgres:15
+    container_name: postgres_container
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=test123
+      - POSTGRES_DB=mydb
+    ports:
+      - "5432:5432"
 ```
-> Non utilizzare il volume per `node_module` rischia di creare una cartella vuota restituendo errori strani
-> Sfruttare la copia di `package.json` direttamente nel `Dockerfile`
+Tips: 
+> Never use volume for `node_module` risks creating an empty folder returning strange errors
+> Exploit the `package.json` file copied inside `Dockerfile`
 
-→ Quindi avvio il compose di Docker
-```
+2. Then start Docker Compose:
+```sh
 docker compose up --build
 ```
-> Ad ogni modifica del compose disattivo il contenitore (prima della ri-attivazione):
+> In each compose mod disable container (before each restart):
 
-→ Disattivo i contenitori:
-```
-docker compose down
+3. To disable containers:
+```sh
+docker compose down     # Deactivate/Remove containers and managed Docker Compose Network
+
+# OTHER COMMANDS
+docker compose down -v  # Remove also Volumes (when declared inside docker-compose file)
+docker compose down --rmi all   # Remove also the images created by compose
+docker compose down --rmi local # Or only build images
+docker system prune -a --volumes    # Brutal clean (of all containers + volumes + images)
 ```
 
 ---
-### DB CONNECTION
-Aggiungo il file di configurazione del DB 
+### DB CONNECTION (SQLite + Node)
 
-→ Creo un file in `/src/db/index.ts`
+Add a config file for DB 
 
-→ Quindi scrivo il codice:
+1. Create a new file in `/src/db/index.ts`
+
+2. Then write in this code:
 ```ts
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -292,14 +292,14 @@ const pool = new Pool({
 
 export const db = drizzle(pool);
 ```
-Questo script configura l'ORM con il backend di node leggendo il DB tramite `connectionString`
+> This script define connection between ORM and backend by reading DB through `connectionString`
 
 ---
-### ROUTING
+### ROUTING (Node)
 
-→ Per impostare una nuova pagina per le autorizzazioni creo un file `/src/routes/auth.ts`
+1. To set new auth page create a file `/src/routes/auth.ts`
 
-→ Col contenuto
+2. Then add this content:
 ```ts
 import { Router } from "express";
 
@@ -311,11 +311,11 @@ authRouter.get("/", (req, res) => {
 
 export default authRouter;
 ```
-> il percorso per aprire questa pagina è definito tramite la struttura delle cartelle + la stringa definita `authRouter.get`
+> The full endpoint is determined by the folder structure + the path specified in `authRouter.get()`
 
-→ Modifico poi il file `/src/index.ts` aggiungendo dei middleware
+3. Modify `/src/index.ts` file adding middleware
 
-→ Aggiungo il routing all'inizio dello script come segue
+4. Add initial routing script as following
 ```ts
 [...]
 import authRouter from "./routes/auth";
@@ -325,15 +325,17 @@ const app = express();
 app.use(express.json());
 app.use("/auth", authRouter);
 ```
-
-- `app.use(express.json())` controlla il tipo di file in entrata (che deve essere un `.json`)
-- `app.use("/auth", authRouter)` crea una route sulla pagina `/auth`
+In this snippet:
+- `app.use(express.json())` check the initial file type (set as `.json`)
+- `app.use("/auth", authRouter)` create a route inside `/auth` page
 
 ---
-### ORM
-→ Creo quindi un file per l' ORM in `/src/db/schema.ts`
 
-Col contenuto
+### ORM (Node + Drizzle)
+
+1. Create a file for ORM in `/src/db/schema.ts`
+
+2. Adding this content:
 ```ts
 import { pgTable, text, uuid, timestamp } from "drizzle-orm/pg-core";
 
@@ -350,29 +352,27 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 ```
 
-Questo schema definisce il tipo User per la select e l'insert di nuovi users a db.
-- User è utilizzato per leggere gli utenti da DB
-- NewUser è usato per scrivere i nuovi utenti a BD
+In this code snippet:
+- **User** is the type to execute SQL and DML for users DB table
+- **User** is used to read **users** from DB
+- **NewUser** is used to write new users to BD
 
-→ Aggiungo una nuova rotta al file `src/routes/auth.ts`
-→ Aggiungo gli import necessari
+3.  Add new route to the `src/routes/auth.ts` file
 ```ts
+// Firstly add needed imports
 import { db } from "../db";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
-```
 
-→ Creo un'interfaccia
-```ts
+// and create interface
 interface SignUpBody {
     name: string;
     email: string;
     password: string;
 }
-```
 
-→ Quindi creo una nuova rotta per la registrazione di un nuovo utente
-```ts
+// [...]
+// Next create new route for new user registration
 authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Response) => {
     try {
         // get req body
@@ -386,7 +386,7 @@ authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Respons
             if(existingUser.length) {
                 res
                     .status(400)
-                    .json({ msg: "User with the same email alreasy exists!" });
+                    .json({ msg: "User with the same email already exists!" });
                 return;
             }
         // hash pw
@@ -400,17 +400,19 @@ authRouter.post("/signup", async (req: Request<{}, {}, SignUpBody>, res: Respons
 });
 ```
 
-prima di proseguire con la codifica della password installo altre librerie a terminale
-```bash
+4. Before go further with password decode install other packages
+```sh
 npm i bcryptjs
 npm i -D @types/bcryptjs
 ```
-→ Quindi aggiungo l'import al file
+
+5. Next add import to the file
 ```ts
 import bcryptjs from "bcryptjs";
-```
-→ Ed aggungo il blocco mancante
-```ts
+
+// [...]
+// and the missing block
+
 // hash pw
 const hashedPassword = await bcryptjs.hash(password, 8);
 // create a new user and store in db
@@ -424,15 +426,17 @@ const [user] = await db.insert(users).values(newUser).returning();
 // return response with status code
 res.status(201).json(user);
 ```
-> il blocco va inserito nello stesso script del file `src/routes/auth.ts`
+> The block must insert in the same `src/routes/auth.ts` snippet
 
-```
+6. Install also dev package
+```sh
 npm i -D drizzle-kit
 ```
 
-→ Aggiungo un file di configurazione del DB `src/drizzle.config.ts`
-→ Col contenuto
-```
+7. Add a config DB file `src/drizzle.config.ts`
+
+8. With following content
+```ts
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
@@ -450,94 +454,86 @@ export default defineConfig({
 });
 ```
 
-> Questo crea uno schema per il Database postgres che sarà applicato in runtime tramite migrazione drizzle
+> This create a schema for postgres DB which will be applied during runtime via drizzle migration
 
 ---
-### MODIFICHE IMPORTANTI
-Per configurare il tutto ed effettuare una serie di modifiche importanti
-
-- Lo `schema.ts` viene aggiunto dal path `src/db/` quindi devo dirlo anche nel file `drizzle.config.ts`
-- Il `docker-compose.yml` 
-	1. l'url viene aggiornato modificando il riferimento all'host @db (che fa riferimento al container postgres)
-	```bash
+### IMPORTANT CHANGES (typescript + env + docker-compose)
+To config all some important changes must be made
+- The `schema.ts` will be added to `src/db/` path, then I must to say also to `drizzle.config.ts` file
+- In the `docker-compose.yml` 
+	- url will be updated modifying the @db host reference (which will refer to postgres container)
+	```sh
 	environment:
 		- PORT=8000
 		- DATABASE_URL=postgresql://postgres:test123@db:5432/mydb
 	```
-	2. in fondo alla configurazione `beckend` aggiungo lo script
-	```bash
-	command: ["sh", "-c", "wait-for-it db:5432 -- npx drizzle-kit push --config src/drizzle.config.ts && npm run dev"]
-	```
-	che mi serve ad avviare la migrazione drizzle applicando un file `wait-for-it` per attendere il caricamento del container `postgres`
-- Il Dockerfile contiene delle aggiunte che :
-	1. correggo il versionamento dei pacchetti npm in modo che siano compatibili con il sistema linux che gira nel container
-	`esbuild` aggiorna la versione in base al sistema operativo
-	```bash
+
+- Dockerfile contains some modifications :
+	- fix versioning fot npm packages to make them compatible with linux system inside container
+	- for `esbuild` update the version based on OS
+	```Dockerfile
 	RUN apt-get update && apt-get install -y \
     build-essential \
     esbuild
-    ```
-    2. avendo bisogno di fare la migrazione devo assicurarmi che il contenitore postgres sia caricato ed attivo. 
-    Per farlo aggiungo al container lo script `wait-for-it`
-    ```
-    COPY wait-for-it.sh /usr/local/bin/wait-for-it
+  ```
+    
+  - When I need to make migration I must to check the postgres container is charged and active 
+    To do I can add to container a custom script `wait-for-it`
+  ```Dockerfile
+  COPY wait-for-it.sh /usr/local/bin/wait-for-it
 	RUN chmod +x /usr/local/bin/wait-for-it
 	```
-- lo script wait-for-it è fondamentale per la perfetta sincronizzazione dei contenitori.
-	1. scarico il file dalla cartella principale dell'app `/beckend`
-	```
+
+- The script 'wait-for-it' it's a standard for perfect sync of containers
+	- download file from main `/backend` app folder
+	```sh
 	curl -o wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
 	```
-	2. modifico i permessi
-	```
+	- update (exec) permissions
+	```sh
 	chmod +x wait-for-it.sh
 	```
 
 ---
-### CHECK DEL DB
+### CHECK THE DB (docker-compose)
 
-→ Avvio il `docker-compose`
-```bash
+1. Start `docker-compose`
+```sh
 docker compose up --build
 ```
-> se dovessi ricompilare il tutto per correggere errori posso eliminare i container con `docker system prune -a`
 
-#### METODO 1:
-→ Poi apro l'app Docker desktop e seleziono il container Postgres poi la tab EXEC
-#### METODO 2:
-→ Posso fare la stessa cosa da terminale leggendo il codice del container postgres
-```bash
-docker ps
-```
-→ Copio il <codice-container> poi lo scrivo nel comando
-```bash
-docker exec -it <codice-container> sh
-```
+2. Open Docker Desktop client and select Postgres Container, then select EXEC tab
+  - I can do the same thing from terminal:
+  I. reading the postgres container id with `docker ps`
+  II. Copying the <code-container>
+  III. And writing into `docker exec -it <code-container> sh`
 
-#### Accedo al prompt del db
-```bash
+3. Open DB prompt
+```sh
 psql -U postgres -d mydb
 ```
 
-#### verifico la presenza di tabelle
-```bash
+4. Verify the DB tables
+```sh
 \dt
 ```
 
-#### faccio una select sulla tabella users
+5. Check content with a select on the users table
 ```sql
 SELECT * FROM users;
 ```
----
-### TEST SIGNUP
-Per iniziare a creare un nuovo utente è possibile inviare alcune POST request.
-Si può fare con `Postman` (scaricando il client) o direttamente da VSCode tramite `Thunder Client`
 
-→ Se usi `Thunder Client` basta cliccare su `New Request`.
-→ Quindi inserisci l'url
-http://localhost:8000/auth/signup
-→ E metti il verbo su `POST`
-→ Poi scegli la tab `Body` ed aggiungi il seguente codice json
+---
+### TEST SIGNUP (Postman | ThunderClient)
+To start the new user creation you can send some POST requests.
+
+You can do them with `Postman` (downloading the client) or directly form VSCode with `Thunder Client` extension.
+
+***With ThunderClient :***
+1. To use `Thunder Client` you must to click on `New Request`.
+2. insert the url `http://localhost:8000/auth/signup`
+3. Change request verb on `POST`
+4. And choose the `Body` tab adding this json code
 ```json
 {
   "name": "dave",
@@ -545,19 +541,20 @@ http://localhost:8000/auth/signup
   "password": "test123"  
 }
 ```
-> Se tutto va liscio ricevi il messaggio `Status: 201 Created` ed una `Response` strutturata a destra con i vari campi della tabella.
+> If it's OK, you will get a message `Status: 201 Created` and a `Response` structured on the right with all fields on the table
 
 ---
-### LOGIN PAGE
+### LOGIN PAGE (TypeScript)
 
-→ Aggiungo la pagina di login al file `src/routes/auth.ts` creo un'interfaccia per la login
+1. Add to `src/routes/auth.ts` file an interface for the login
 ```ts
 interface LoginBody {
     email: string;
     password: string;
 }
 ```
-→ Quindi la funzione di login
+
+2. And the new login function
 ```ts
 authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response) => {
     try {
@@ -589,77 +586,84 @@ authRouter.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response)
 ```
 
 ---
-### TEST LOGIN
+### TEST LOGIN  (Postman | ThunderClient)
 
-Come per la registrazione creo una nuova POST request tramite `Thunder Client`
-
-→ Questa volta aggiungo il path url `http://localhost:8000/auth/login`
-→ Sceglo il verbo della richiesta POST
-→ Quindi aggiungo al bodi il codice json per il login
+1. Create new POST request in `Thunder Client`
+2. Ad path url write `http://localhost:8000/auth/login`
+3. Change the request verb to POST
+4. Then add to the json body the login attributes
 ```json
 {
   "email": "pirate@dave.com",
   "password": "test123"  
 }
 ```
-> Se tutto va bene ottterrò una risposta `Status: 200 OK` con un json nella tab `Response` contenente i dati utente.
+> If all is correct I will get a response `Status: 200 OK` with a json in the `Response` tab with user data:
+
 ---
-### JWT
-Per assicurarsi che l'utente abbia una connessione sicura è possibile implementare il modulo JWT.
-→ Spegnendo il docker-compose con
-```bash
+### JWT (Typescript + node)
+
+To have a secure user connection you can implement JWT module.
+
+1. Shut-Down the `docker-compose`
+```sh
 docker-compose down -v
 ```
-→ Installo il nuovo pacchetto JWT ed i tipi associati (per TS)
-```bash
+
+2. Install new packages and types for JWT
+```sh
 npm i jsonwebtoken
 npm i -D @types/jsonwebtoken
 ```
-→ Quindi riavvio il docker-compose
-```bash
+
+3. And restart the `docker-compose`
+```sh
 docker compose up --build
 ```
 
-Modifico poi il file `src/routes/auth.ts`
+4. Modify the `src/routes/auth.ts` file
 ```ts
 import jwt from "jsonwebtoken";
 ```
-→ Quindi nella funzione di login (prima del `res.json`)
+
+5. And inside the login function (before the `res.json`)
 ```ts
 // JWT
 const token = jwt.sign({ id: existingUser.id }, "passwordKey");
 ```
 
-→ Rieseguo la richiesta di login con `Thunder Client` ed se tutto va bene ottengo un file json con il `token` ed i dati dell'utente
-> Copio la stringa `token` per lo step successivo
+6. Run again the request from `Thunder Client` and if it's OK I'll get a response as json with `token` and the user data
+> Copy the string `token` for the next step
 
 ---
-### VERIFY JWT
-Per la verifica del JWT eseguo una nuova Richiesta `Thunder Client` con queste specifiche:
+### VERIFY JWT (Postman | Thunder Client)
 
-- VERB: 	POST
+1. To get validation of JWT you can run a new `Thunder Client` request with this parameters:
+
+- VERB: POST
 - URL: 	http://localhost:8000/auth/tokenIsValid
 - HEADER: x-auth-token
-- ARGOMENTO HEADER: <il token copiato prima>
-- BODY: lasciare vuoto
+- HEADER: <paste the previous token>
+- BODY: keep it void
 
-→ Cliccando SEND dovrei ottenere una Response = 'true'
-> Avendo modificato il catch con un json = false provo a cambiare il token in modo che sia sbagliato e verifico che ci sia una Response = 'false'
+2. Click SEND to get a Response = 'true'
+> The catch event will is trig with a json = false, then try to change the token to test error case with a Response = 'false'
 
 ---
 ### GET USER DATA
-Finita la procedura di verifica del token, ho la necessità di recuperare i dati utente (che verranno poi inoltrati al frontend).
-Per farlo devo permettere alla rotta "/" di visualizzare questi dati.
-Un punto fondamentale per recuperare i dati è l'integrazione del middleware.
-Il middleware serve a permettere solamente ad alcuni utenti di effettuare alcune azioni.
-Un esempiò può essere quello di permettere alcune azioni solamente agli utenti che sono stati autenticati.
+When you finish the token verify process, I need to retrieve user data (that will be sent to frontend)  
+To do I need to allow the "/" route to visualize this data  
+A key point for data retrieve is the middleware integration  
+The middleware is the part that will permit only a specific users to make some actions  
+For example you can permit some action only for the authenticated users
 
-**Alcune osservazioni**
-1. Il primo passo è verificare se un utente è stato o meno autenticato.
-2. L'integrazione del middleware fa passare ogni richiesta da una rotta predefinita.
-3. Il middleware sfrutta la funzione di `tokenIsValid`
+***An Overview :***
+- The first step is to verify if an user is authenticated or not
+- The middleware integration will route each request to a specific endpoint
+- Middleware exploit the function `tokenIsValid`
 
-→ Creo quindi una nuova cartella ed un file in `src/middleware/auth.ts`
+1. I create new folder and file in `src/middleware/auth.ts`
+2. Add this content:
 ```ts
 import { UUID } from "crypto";
 import { eq } from "drizzle-orm";
@@ -715,41 +719,46 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
 }
 ```
 
-Alcune caratteristiche del file:
-- `interface` che è un estensione di `Request` e ritorna solo `user` e `token`
-- `NextFunction` che permette l'integrazione del middleware nella rotta principale `/auth`
-- Il blocco **_try_** e **_catch_** è preso dalla rotta precedente `tokenIsValid`
-- `res.status` che restituiscono un codice errore per ogni casistica
-- `verifiedToken` che è di tipo UUID (non `string`)
+Some feature form this snippet:
+- `interface` it's a `Request` extension, will return only `user` and `token`
+- `NextFunction` allow the middleware integration in the main `/auth` root
+- The **_try_** and **_catch_** block is get from previous `tokenIsValid` block
+- `res.status` return an error code for each case
+- `verifiedToken` is an UUID type (not `string`)
 
-Quindi posso procedere con l'integrazione nel file `src/routes/auth.ts`
-→ Modifico la funzione `authRouter.get` aggiungendo il middleware `auth` e cambiando la response con un `req.token`
+Then I can integrate the `src/routes/auth.ts` file
+3. Update the `authRouter.get` function adding the `auth` middleware and changing the response with a `req.token`
 ```ts
 authRouter.get("/", auth, (req: AuthRequest, res) => {
     res.send(req.token);
 });
 ```
-→ aggiungendo gli import necessari
+
+4. Add the needed imports
 ```ts
 import { auth, AuthRequest } from "../middleware/auth";
 ```
-→ Finita la parte di codice procedo con il testing via `Thunder Client`
-Creo una nuova richiesta con questi parametri:
+
+5. As the code is finish the test step can begin with `Thunder Client`
+Create a new request with this values:
 - URL: http://localhost:8000/auth/
 - VERB: GET
 - HEADER: x-auth-token
-- HEADER CONTENT: <il token copiato dal login>
+- HEADER CONTENT: <the token from login>
 
-→ Per come è impostato il codice se la richiesta va a buon fine ottengo un token come risposta che corrisponde a quello inserito nell'header.
+If the request it's OK I'll get a token as response, the same of the one entered in the header.
 
-Come ultimo passaggio per ottenere effettivamente i dati utente devo modificare il contenuto dell'endpoint "/" sul file `src/routes/auth.ts`
-→ Da così
+6. As last step to get the user data you must to update the content in the "/" endpoint for the `src/routes/auth.ts` file
+
+- From this:  
 ```ts
 authRouter.get("/", auth, (req: AuthRequest, res) => {
     res.send(req.token);
 });
 ```
-→ a così
+
+
+- To this:
 ```
 authRouter.get("/", auth, async (req: AuthRequest, res) => {
     try {
@@ -767,29 +776,26 @@ authRouter.get("/", auth, async (req: AuthRequest, res) => {
     }
 });
 ```
-
-> noto come la funzione sia diventata asincrona, questo serve a sincronizzare le info utente per inoltrarle alla response
+> You can see how the function it become async, this is needed to synchronize user info to forward them to the response
 
 ---
-### CONNECT FRONTEND
-→ Adesso che ho i dati utente di ritorno dal backend posso connettere il frontend mobile (flutter).
+### CONNECT FRONTEND (flutter)
 
-Prima di proseguire con la modifica installo 2 nuovi pacchetti:
-→ http
-```bash
-dart pub add http
-```
-→ flutter_bloc
-```bash
-flutter pub add flutter_bloc
+Now that I have return user data from backend I can connect frontend mobile (flutter).
+
+1. But before going next I need to install 2 new packages:
+```sh
+dart pub add http   # for http
+flutter pub add flutter_bloc  # flor BLoC integration
 ```
 
-→ Fatto ciò creo una nuova cartella in `lib/features/auth/repository`
-Questa cartella conterrà 2 file:
-- AuthRemote Repository: Per comunicare con le API externe create in NODE.
-- LocalAuth Repository: Per creare un app principalmente offline.
+2. Next create new folder in `lib/features/auth/repository`
 
-→ Creo il primo file `auth_remote_repository.dart`
+3. This folder will contains 2 files:
+- **AuthRemote Repository**: To communicate with external API (in NodeJS)
+- **LocalAuth Repository**: To create a offline-first app.
+
+4. Create the first `auth_remote_repository.dart` file
 ```dart
 import 'package:http/http.dart' as http;
 
@@ -826,14 +832,16 @@ class AuthRemoteRepository {
 	// Future<void> login({}) {	}
 }
 ```
-- `backendUri` è una variabile costante definita in un file separato (vedi sotto).
-- `UserModel` è il modello di riferimento definito sotto 
-- `UserModel.fromJson` sarà implementabile una volta creato il codice di mapping nel file del modello
-- `UserModel.fromMap` questa linea è utilizzabile se volessi dividere i compiti delle classi omettendo i metodi `toJson` e `fromJson`
-- `body` contiene le variabili di risposta
+From this snippet:
+- `backendUri` is a const variable defined in a separated file (look below).
+- `UserModel` is the referral model defined below 
+- `UserModel.fromJson` will be implemented once the mapping code will be created inside the model file
+- `UserModel.fromMap` this is useful when I want to separate class tasks removing `toJson` and `fromJson` method
+- `body` contains response vars
 
-Le variabili implementate nelle richieste http sono create come costanti.
-→ Aggiungo quindi al progetto un file in `lib/core/constants/constants.dart`
+Variables implemented in http requests are created as const
+
+5. Then add new file in `lib/core/constants/constants.dart`
 ```dart
 class Constants {
 	static String backendUri = "http://localhost:8000";
@@ -842,7 +850,8 @@ class Constants {
 
 ---
 ### MODEL USER
-Creo un file `lib/models/user_model.dart`
+
+Create new file `lib/models/user_model.dart`
 ```dart
 class UserModel {
   final String id;
@@ -853,21 +862,24 @@ class UserModel {
   final DateTime updatedAt;
 };
 ```
-Implementati i campi nel modello user devo adesso fare un mapping per convertirlo da e verso il formato json
-Esiste un plugin VSCode per questo tipo di operazione : `Dart Data Class Generator`
-Installato il plugin posso creare il resto del codice per il mapping semplicemente:
-→ Click DX sul codice del modello > Scegli "Generate data class".
-Questo creerà un codice aggiuntivo per la mappatura dei campi del modello.
+
+Once the fields are implemented in the user model, I must to make a mapping to convert it from and to the json format  
+In VSCode you can do with a plugin : `Dart Data Class Generator`
+You can install the plugin and create the rest of the code for the mapping with:
+- Click Right on the model code > Choose "Generate data class"
+- This will create a new portion code for mapping model fields
 
 ---
 ### CUBIT
-Cubit deriva dal Bloc FrameWork che si iterpone tra il repository e la visualizzazione dell'app.
-Serve per impostare un pattern observer tra i repository (che prendono i dati dal backend) e le componenti frontend.
+Cubit become from BLoC FrameWork that come between the repository and the app view  
+It's useful to set an observer pattern between repositories (which retrieve data from backend) and the frontend components
 
-> `part` e `part of` serve a connetere i 2 file per ottenere una corrispondenza di informazioni.
+> `part` and `part of` is used to connect 2 files to get an information matching
 
-Per iniziare creo 2 file :
-→ Il primo `lib/features/auth/cubit/auth_state.dart` col codice:
+Start creating 2 files :
+
+1. The first `lib/features/auth/cubit/auth_state.dart` 
+2. With this code inside:
 ```dart
 part of "auth_cubit.dart";
 
@@ -889,12 +901,12 @@ final class AuthError extends AuthState {
   AuthError(this.error);
 }
 ```
-- `AuthState` è la classe che accomuna gli State Methods
-- `AuthInitial` estende `AuthState` e rende inizializzabile lo State Object (da altre classi)
-- 
 
+- `AuthState` is the class which unites the State Methods
+- `AuthInitial` extends `AuthState` and makes the State Object initializable (from other classes)
 
-→ Il secondo `lib/features/auth/cubit/auth_cubit.dart`
+3. The second `lib/features/auth/cubit/auth_cubit.dart`
+4. With this content
 ```dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/auth/repository/auth_remote_repository.dart';
@@ -928,34 +940,35 @@ class AuthCubit extends Cubit<AuthState> {
   }
 }
 ```
-- `AuthCubit` definisce la classe Cubit che otterrà gli State Change da `AuthState`
-- La linea successiva serve a inizializzare la classe cubit (con lo State `AuthInitial`)
-- `authRemoteRepository` istanzia una copia del repository da "osservare"
-- `signUp` è un metodo (simile ad un'azione) che modifica lo stato del login
-- `emit(...)` descrive lo stato attuale che viene modificato durante l'esecuzione del codice
 
-→ Adesso devo implementare il pattern Cubit nel file `lib/main.dart`
-Prima di procedere mi serve aggiungere un componente VSCode per òa creazione del widget.
-Quindi dalla TAB Extension di VSCode cerco `bloc` (di Felix Angelov) e lo installo
+- `AuthCubit` defines the Cubit class which will get the Change of State from `AuthState`
+- Next line is used to init Cubit class (with `AuthInitial` State)
+- `authRemoteRepository` instantiate a repository's copy to "observe"
+- `signUp` is a method (like an action) which modify the login state
+- `emit(...)` describe the current state which will be modified during code exec
 
-Aggiungo quindi il widget al `MaterialApp` con `CTRL + .` per aprire il menu e 
-1. seleziono `BlocProvider`
-2. modifico il nome in `MultiBlocProvider`
-3. rimuovo la label `create`
-4. aggiungo la label `providers` come segue:
-```
+Now you can implement Cubit pattern in `lib/main.dart` file  
+Before proceed I need to add a VSCode component to create widget  
+5. Then from Extension TAB of VSCode I search `bloc` (of Felix Angelov) and install it
+
+Add then the widget to `MaterialApp` with `CTRL + .` to open menu and 
+6. select `BlocProvider`
+7. update name in `MultiBlocProvider`
+8. remove `create` label
+9. add `providers` label
+```dart
 providers: [
 	BlocProvider(create: (_) => AuthCubit()),
 ],
 ```
-- `BlocProvider` connette il widget alla classe `AuthCubit`
+> `BlocProvider` connect the widget to `AuthCubit` class
 
-→ Adesso modifico il file `lib/features/auth/signup_page.dart` aggungendo il metodo di lettura dati
-```
+10. Now modify the `lib/features/auth/signup_page.dart` file adding the read data method
+```dart
 void signUpUser() {
 	if (formKey.currentState!.validate()) {
 		// store the user data
-→		context.read<AuthCubit>().signUp(
+    context.read<AuthCubit>().signUp(
 			name: nameController.text.trim(),
 			email: emailController.text.trim(),
 			password: passwordController.text.trim(),
@@ -963,14 +976,16 @@ void signUpUser() {
 	}
 }
 ```
-- `context.read` chiama l'azione `signUp` presente in cubit
-- I valori `name`, `email` e `password` sono presi dai componenti `Controller`
-- I parametri vengono "trimmati" o privati di spazi vuoti nella stringa
+In this snippet:
+- `context.read` call the `signUp` action holds by Cubit
+- The values `name`, `email` and `password` are taken from `Controller` components
+- Params are "trimmed" or compressed from void spaces in the string
 
-Poi applico lo stato del pattern bloc al corpo della pagina (sempre `signup_page`)
-→ Faccio un wrap del componente `Padding` con `CTRL + .` scegliendo `BlocConsumer`
-→ Modifico il componente come segue
-```
+Then apply the bloc pattern state to the body page (still in `signup_page`)  
+11. Make a wrap for `Padding` component with the shortcut `CTRL + .` choosing `BlocConsumer`
+
+12. Modify the component as follow:
+```dart
 BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -994,28 +1009,29 @@ BlocConsumer<AuthCubit, AuthState>(
             );
           }
 ```
-- `AuthCubit` è quello che emette gli State
-- `AuthState` è la classe che definisce gli State
-- con `AuthError` visualizzo un messaggio di errore tramite SnackBar
-- con `AuthLoading` creo un componente di loading circolare
-- con `AuthSignUp` visualizzo un messaggio di avvenuta registrazione tramite SnackBar
+In this snippet:
+- `AuthCubit` is the State emitter
+- `AuthState` is the class which define the State
+- `AuthError` to visualize an error message via SnackBar
+- `AuthLoading` to create a circular progress component
+- `AuthSignUp` to visualize a message of registration done via SnackBar
 
 ---
 ### CHECK FULL APP
-Controllo adesso i procedimenti di scrittura su DB Postgres una volta effettuata la registrazione.
-Questo procedimento è possibile modificando l'indirizzo ip che richiama il backend dell'app Flutter
-- Se gira su emulatore locale `10.0.2.2:8000`
-- Se gira su device Android fisico allora l'IP deve essere lo stesso che esegue il client Docker (fai un check con `ipconfig`)
 
-Avvia il tutto 
-1. `docker compose up --build` dal terminale `/backend`
-2. `flutter run` da terminale `/frontend`
-3. Apri la pagina `signup` da app Android
-4. Inserisci le credenziali di registrazione
-5. Premi il pulsante `Signup`
-6. Da PC apri il client Docker e seleziona il container Postgres
-7. Scegli la tab EXEC per scrivere a terminale Postgres
-8. Scrivi `psql -U postgres -d mydb` per aprire il DB
-9. fai una `SELECT * FROM users;` per leggere la lista utenti (dovrebbe esserci quello che hai inserito dalla pagina Flutter su Android)
+Check now all write steps on Postgres DB once the registration is complete  
+This process is possible modifying the IP address which will recall the backend of Flutter app
+- If it's running on local emulator `10.0.2.2:8000`
+- If it's running on a physical Android device the IP must be the same the one that execute Docker client (check with `ipconfig`)
+
+Start all with 
+1. `docker compose up --build` from terminal `/backend`
+2. `flutter run` from terminal `/frontend`
+3. Open the page `signup` from Android app
+4. Insert registration credentials
+5. Press `Signup` button
+6. From PC open Docker Desktop client and select Postgres container
+7. Choose the EXEC tab to write at the postgres terminal
+8. Write `psql -U postgres -d mydb` to open the DB
+9. Make a simple `SELECT * FROM users;` to read user list (It should be what you entered from the Flutter page on Android)
 ---
-
