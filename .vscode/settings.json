@@ -1,10 +1,19 @@
 {
     "cSpell.words": [
-        "Angelov",
+        "Cera",
         "cupertino",
+        "dotenv",
         "esbuild",
+        "eslintcache",
+        "jscoverage",
+        "jspm",
+        "Microbundle",
         "mydb",
-        "psql",
-        "Roboto"
+        "nuxt",
+        "pids",
+        "sqflite",
+        "stylelintcache",
+        "vuepress",
+        "wscript"
     ]
 }

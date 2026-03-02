@@ -1,11 +1,15 @@
 import 'dart:convert';
 
 import 'package:frontend/core/constants/constants.dart';
-import 'package:frontend/core/errors/auth_exception.dart';
+import 'package:frontend/core/services/sp_service.dart';
+import 'package:frontend/features/auth/repository/auth_local_repository.dart';
 import 'package:frontend/models/user_model.dart';
 import 'package:http/http.dart' as http;
 
 class AuthRemoteRepository {
+  final spService = SpService();
+  final authLocalRepositiry = AuthLocalRepository();
+
   Future<UserModel> signUp({
     required String name,
     required String email,
@@ -13,12 +17,20 @@ class AuthRemoteRepository {
   }) async {
     try {
       final res = await http.post(
-        Uri.parse('${Constants.backendUri}/auth/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'name': name, 'email': email, 'password': password}),
+        Uri.parse(
+          '${Constants.backendUri}/auth/signup',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+        }),
       );
       if (res.statusCode != 201) {
-        throw jsonDecode(res.body)['msg'];
+        throw jsonDecode(res.body)['error'];
       }
 
       // return UserModel.fromMap(jsonDecode(res.body));
@@ -32,16 +44,76 @@ class AuthRemoteRepository {
     required String email,
     required String password,
   }) async {
-    final res = await http.post(
-      Uri.parse('${Constants.backendUri}/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
+    try {
+      final res = await http.post(
+        Uri.parse(
+          '${Constants.backendUri}/auth/login',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+      if (res.statusCode != 200) {
+        throw jsonDecode(res.body)['error'];
+      }
 
-    if (res.statusCode != 200) {
-      throw AuthException(jsonDecode(res.body)['msg']);
+      // return UserModel.fromMap(jsonDecode(res.body));
+      return UserModel.fromJson(res.body);
+    } catch (e) {
+      throw e.toString();
     }
+  }
 
-    return UserModel.fromJson(res.body);
+  Future<UserModel?> getUserData() async {
+    try {
+      final token = await spService.getToken();
+      // print(token);
+      if (null == token) {
+        return null;
+      }
+
+      final res = await http.post(
+        Uri.parse(
+          '${Constants.backendUri}/auth/tokenIsValid',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+      );
+
+      // print(res.body);
+
+      if (res.statusCode != 200 || false == jsonDecode(res.body)) {
+        return null;
+        // throw jsonDecode(res.body)['error'];
+      }
+
+      final userResponse = await http.get(
+        Uri.parse(
+          '${Constants.backendUri}/auth',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+      );
+
+      // print(userResponse.body);
+
+      if (userResponse.statusCode != 200) {
+        throw jsonDecode(userResponse.body)['error'];
+      }
+
+      // return UserModel.fromMap(jsonDecode(res.body));
+      return UserModel.fromJson(userResponse.body);
+    } catch (e) {
+      final user = await authLocalRepositiry.getUser();
+      return user;
+    }
   }
 }

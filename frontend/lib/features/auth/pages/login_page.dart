@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/auth/cubit/auth_cubit.dart';
 import 'package:frontend/features/auth/pages/signup_page.dart';
-import 'package:frontend/features/tasks/pages/home_page.dart';
+import 'package:frontend/features/home/pages/home_page.dart';
 
 class LoginPage extends StatefulWidget {
-  static MaterialPageRoute route() =>
-      MaterialPageRoute(builder: (context) => const LoginPage());
+  static MaterialPageRoute route() => MaterialPageRoute(
+        builder: (context) => const LoginPage(),
+      );
   const LoginPage({super.key});
 
   @override
@@ -29,11 +30,9 @@ class _LoginPageState extends State<LoginPage> {
 
   void loginUser() {
     if (formKey.currentState!.validate()) {
-      // store the user data
       context.read<AuthCubit>().login(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+          email: emailController.text.trim(),
+          password: passwordController.text.trim());
     }
   }
 
@@ -43,21 +42,29 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.error)));
-          } else if (state is AuthLoggedIn) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => HomePage(userName: state.user.name),
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
               ),
+            );
+          } else if (state is AuthLoggedIn) {
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   const SnackBar(
+            //     content: Text("You're logged in!"),
+            //   ),
+            // );
+            Navigator.pushAndRemoveUntil(
+              context,
+              HomePage.route(),
+              (_) => false,
             );
           }
         },
         builder: (context, state) {
           if (state is AuthLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
           return Padding(
             padding: const EdgeInsets.all(15.0),
@@ -66,14 +73,15 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Login.",
-                    style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
-                  ),
+                  const Text("Login.",
+                      style:
+                          TextStyle(fontSize: 50, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 30),
                   TextFormField(
                     controller: emailController,
-                    decoration: const InputDecoration(hintText: 'Email'),
+                    decoration: const InputDecoration(
+                      hintText: 'Email',
+                    ),
                     validator: (value) {
                       if (value == null ||
                           value.trim().isEmpty ||
@@ -86,7 +94,9 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 15),
                   TextFormField(
                     controller: passwordController,
-                    decoration: const InputDecoration(hintText: 'Password'),
+                    decoration: const InputDecoration(
+                      hintText: 'Password',
+                    ),
                     validator: (value) {
                       if (value == null ||
                           value.trim().isEmpty ||
@@ -101,7 +111,10 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: loginUser,
                     child: const Text(
                       'LOGIN',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   GestureDetector(

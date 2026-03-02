@@ -41,23 +41,19 @@ class UserModel {
       'email': email,
       'name': name,
       'token': token,
-      'createdAt': createdAt.millisecondsSinceEpoch,
-      'updatedAt': updatedAt.millisecondsSinceEpoch,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      id: map['id'] as String,
-      email: map['email'] as String,
-      name: map['name'] as String,
-      token: map['token'] as String,
-      createdAt: DateTime.parse(
-        map['createdAt'],
-      ), //.fromMillisecondsSinceEpoch(map['createdAt'] as int),
-      updatedAt: DateTime.parse(
-        map['updatedAt'],
-      ), //.fromMillisecondsSinceEpoch(map['updatedAt'] as int),
+      id: map['id'] ?? '',
+      email: map['email'] ?? '',
+      name: map['name'] ?? '',
+      token: map['token'] ?? '',
+      createdAt: DateTime.parse(map['createdAt']),
+      updatedAt: DateTime.parse(map['updatedAt']),
     );
   }
 

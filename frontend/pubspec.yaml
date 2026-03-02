@@ -8,20 +8,32 @@ environment:
   sdk: ^3.10.4
 
 dependencies:
-  sentry_flutter: ^9.14.0
   flutter:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  http: ^1.6.0
+  http: ^1.6.0 
   flutter_bloc: ^9.1.1
+  shared_preferences: ^2.5.4
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  intl: ^0.20.2
+  flex_color_picker: ^3.8.0
+  uuid: ^4.5.3
+  connectivity_plus: ^7.0.0
 
 dev_dependencies:
-  sentry_dart_plugin: ^3.2.1
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
 
 flutter:
+
   uses-material-design: true
+
+fonts:
+  - family: Cera Pro
+    fonts:
+      - assets: assets/fonts/Cera-Pro-Medium.otf
+      - assets: assets/fonts/Cera-Pro-Bold.otf

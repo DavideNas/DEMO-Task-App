@@ -456,6 +456,11 @@ export default defineConfig({
 
 > This create a schema for postgres DB which will be applied during runtime via drizzle migration
 
+9. After run this bash command to generate migration files:
+```sh
+npx drizzle-kit generate --config=src/drizzle.config.ts
+```
+
 ---
 ### IMPORTANT CHANGES (typescript + env + docker-compose)
 To config all some important changes must be made
